@@ -126,6 +126,7 @@ Watch for changes:
 
 - Run a command, save the output
 - Run the command again, display the diff from the previous output
+- Used for running commands in a `crontab`
 
 dachs.conf:
 
