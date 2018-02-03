@@ -1,0 +1,235 @@
+Five Tools in Five Minutes
+3 Feb 2018
+
+Alexander Neumann
+alexander@bumpern.de
+https://restic.net
+@resticbackup
+
+* github.com/fd0/build-go
+
+* before
+
+
+Master:
+
+    go get github.com/restic/restic/cmd/restic
+
+Release:
+
+    export GOPATH=/tmp/gopath
+    mkdir -p $GOPATH/src/github.com/restic
+    wget https://github.com/restic/restic/releases/download/v0.8.1/restic-0.8.1.tar.gz
+    tar xvzf restic-0.8.1.tar.gz
+    mv restic-0.8.1 $GOPATH/src/github.com/restic/restic
+    cd $GOPATH/src/github.com/restic/restic/cmd/restic
+    go build
+
+Result:
+
+    $ restic version
+    restic compiled manually
+    compiled with go1.10rc1 on linux/amd64
+
+* with build.go
+
+Master:
+
+    git clone github.com/restic/restic/cmd/restic
+    cd restic
+    go run build.go
+
+    ./restic version
+    restic 0.8.1
+    compiled with go1.10rc1 on linux/amd64
+
+
+Release:
+
+    wget https://github.com/restic/restic/releases/download/v0.8.1/restic-0.8.1.tar.gz
+    tar xvzf restic-0.8.1.tar.gz
+    cd restic-0.8.1
+    go run build.go
+
+    ./restic version
+    restic 0.8.1 (v0.8.1-125-gc8cb9a95)
+    compiled with go1.10rc1 on linux/amd64
+
+* build.go bonus
+
+    go run build.go --tags debug --tests --enable-cgo --goos windows --goarch 386
+
+* github.com/fd0/machma
+
+* machma - demo 1
+
+.image https://raw.githubusercontent.com/fd0/machma/master/demos/demo1.gif 450 _
+
+* machma - demo 2
+
+.image https://raw.githubusercontent.com/fd0/machma/master/demos/demo2a.gif 400 _
+
+* machma - demo 3
+
+.image https://raw.githubusercontent.com/fd0/machma/master/demos/demo2b.gif 280 _
+
+* github.com/fd0/grobi
+
+* grobi
+
+- Automatically configure Xorg displays with `xrandr`
+- Subscribes to X "screen change" events
+- Very useful for tiling window managers!
+- Simple config in YAML
+
+* grobi rules
+
+  - name: Docking Station
+    outputs_connected: [HDMI2, HDMI3]
+    outputs_present: [DP2-2]
+    configure_row:
+        - HDMI2
+        - HDMI3
+    execute_after:
+      - xautolock -enable
+
+  - name: TV
+    outputs_connected: 
+      - HDMI1-SAM-2618-808661557
+    configure_single: HDMI1
+    execute_after:
+      - xautolock -disable
+
+  - name: Fallback
+    configure_single: eDP1
+
+* running grobi
+
+Apply rules once:
+
+    $ grobi update -v
+    grobi: 12:52:38.296476 enable outputs: [eDP1]
+    grobi: 12:52:38.296838 running command /usr/bin/xrandr xrandr --output eDP1 --auto
+
+Watch for changes:
+
+    $ grobi watch -v
+    grobi: 12:53:34.198244 successfully subscribed to X RANDR change events
+    grobi: 12:53:34.210040 outputs: [eDP1 (connected, primary) 1920x1080*+ [CMN-5297-0] DP1 DP2 DP3 HDMI1 HDMI2 HDMI3 VIRTUAL1]
+    grobi: 12:53:34.210064 new rule found: Mobile
+    grobi: 12:53:34.210078 enable outputs: [eDP1]
+    grobi: 12:53:34.210394 running command /usr/bin/xrandr xrandr --output eDP1 --auto
+
+* github.com/fd0/dachs
+
+* dachs
+
+- Run a command, save the output
+- Run the command again, display the diff from the previous output
+
+dachs.conf:
+
+    [[command]]
+    name = "current time"
+    run = "date"
+    interval = 5
+
+* first run
+
+    $ ./dachs -c dachs.conf
+
+    diff for command current time
+    ============================
+    diff --git a/old b/new
+    index e69de29..75e42ec 100644
+    --- a/old
+    +++ b/new
+    @@ -0,0 +1 @@
+    +Sa 3. Feb 13:34:59 CET 2018
+
+* second run
+
+    $ ./dachs -c dachs.conf
+
+    [no output]
+
+* third run
+
+    $ ./dachs -c dachs.conf
+
+    diff for command current time
+    ============================
+    diff --git a/old b/new
+    index 75e42ec..9319c47 100644
+    --- a/old
+    +++ b/new
+    @@ -1 +1 @@
+    -Sa 3. Feb 13:34:59 CET 2018
+    +Sa 3. Feb 13:35:39 CET 2018
+
+* github.com/restic/restic
+
+.image restic.png 400 _
+
+* restic
+
+Initialize new repo:
+
+    $ export RESTIC_REPOSITORY=sftp:host:/home/user/repo RESTIC_PASSWORD=geheim
+
+    $ restic init
+    created restic repository 014849708c at sftp:host:/home/user/repo
+
+Make a new backup:
+
+    $ restic backup shared/work/web
+    password is correct
+    scan [/home/fd0/shared/work/web]
+    scanned 1863 directories, 5337 files in 0:00
+    [0:16] 8.80%  155.049 MiB / 1.720 GiB  3953 / 7200 items  0 errors  ETA 2:45 
+    [...]
+    snapshot a125d48c saved
+
+* 
+
+List snapshots:
+
+    $ restic snapshots
+    ID        Date                 Host        Tags        Directory
+    ----------------------------------------------------------------------
+    a125d48c  2018-02-03 13:49:38  mopped                  /home/fd0/shared/work/web
+    7bf9cbee  2018-02-03 13:50:24  mopped                  /home/fd0/shared/work/web
+    ----------------------------------------------------------------------
+    2 snapshots
+
+* 
+
+Browse around:
+
+    $ restic mount ~/mnt/temp
+
+    $ ls -l ~/mnt/temp
+    dr-xr-xr-x 1 fd0 users 0 Feb  3 13:54 hosts
+    dr-xr-xr-x 1 fd0 users 0 Feb  3 13:54 ids
+    dr-xr-xr-x 1 fd0 users 0 Feb  3 13:54 snapshots
+    dr-xr-xr-x 1 fd0 users 0 Feb  3 13:54 tags
+
+    $ ls -l ~/mnt/temp/snapshots
+    dr-xr-xr-x 3 fd0 users 0 Feb  3 13:49 2018-02-03T13:49:38+01:00
+    dr-xr-xr-x 3 fd0 users 0 Feb  3 13:50 2018-02-03T13:50:24+01:00
+    lrwxrwxrwx 1 fd0 users 0 Feb  3 13:50 latest -> 2018-02-03T13:50:24+01:00
+
+    $ head -n 5 ~/mnt/temp/snapshots/latest/web/ghenga/LICENSE
+    The MIT License (MIT)
+
+    Copyright (c) 2016 ghenga
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+
+* Repositories
+
+[[https://github.com/fd0/build-go]]
+[[https://github.com/fd0/machma]]
+[[https://github.com/fd0/grobi]]
+[[https://github.com/fd0/dachs]]
+[[https://github.com/restic/restic]]
